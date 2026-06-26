@@ -1,0 +1,5 @@
+Flask==2.3.3
+flask-cors==3.0.10
+mysql-connector-python==9.7.0
+pandas==3.0.3
+scikit-learn==1.9.0
