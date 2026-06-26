@@ -22,6 +22,9 @@ function AnalyticsPage() {
   useEffect(() => {
     async function loadAnalytics() {
       const result = await getAnalytics()
+
+      alert(JSON.stringify(result))
+
       setAnalytics(result)
     }
     loadAnalytics()
@@ -60,29 +63,29 @@ function AnalyticsPage() {
         </div>
         <div className="mt-6 space-y-4">
           {analytics.shops.map((shop) => (
-            <div key={shop.shopId} className="rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900">
+            <div key={shop.ShopID} className="rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-900">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p className="text-base font-semibold text-slate-900 dark:text-slate-100">{shop.shopName}</p>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Forecast demand: {shop.forecastDemand}</p>
+                  <p className="text-base font-semibold text-slate-900 dark:text-slate-100">{shop.ShopName}</p>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Forecast demand: {shop.ForecastDemand}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`rounded-full px-3 py-1 text-sm font-medium ${badgeClass(shop.riskLevel)}`}>{shop.riskLevel}</span>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-300">Priority {shop.priorityScore}</span>
+                  <span className={`rounded-full px-3 py-1 text-sm font-medium ${badgeClass(shop.RiskLevel)}`}>{shop.RiskLevel}</span>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-300">Priority {shop.PriorityScore}</span>
                 </div>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl bg-white p-4 text-sm text-slate-700 shadow-sm dark:bg-slate-950 dark:text-slate-300">
                   <p className="text-slate-500 dark:text-slate-400">Current Stock</p>
-                  <p className="mt-2 font-semibold text-slate-900 dark:text-slate-100">{shop.currentStock}</p>
+                  <p className="mt-2 font-semibold text-slate-900 dark:text-slate-100">{shop.CurrentStock}</p>
                 </div>
                 <div className="rounded-2xl bg-white p-4 text-sm text-slate-700 shadow-sm dark:bg-slate-950 dark:text-slate-300">
                   <p className="text-slate-500 dark:text-slate-400">Surplus / Deficit</p>
-                  <p className="mt-2 font-semibold text-slate-900 dark:text-slate-100">{shop.surplusOrDeficit}</p>
+                  <p className="mt-2 font-semibold text-slate-900 dark:text-slate-100">{shop.SurplusOrDeficit}</p>
                 </div>
                 <div className="rounded-2xl bg-white p-4 text-sm text-slate-700 shadow-sm dark:bg-slate-950 dark:text-slate-300">
                   <p className="text-slate-500 dark:text-slate-400">Forecast Demand</p>
-                  <p className="mt-2 font-semibold text-slate-900 dark:text-slate-100">{shop.forecastDemand}</p>
+                  <p className="mt-2 font-semibold text-slate-900 dark:text-slate-100">{shop.ForecastDemand}</p>
                 </div>
               </div>
             </div>
