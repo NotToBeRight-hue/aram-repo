@@ -54,12 +54,16 @@ def add_inventory():
         import traceback
         traceback.print_exc()
         raise
-
 @app.route("/api/inventory/<int:shop_id>", methods=["PUT"])
 def update_inventory(shop_id):
     data = request.json or {}
-    updated_items = DB.update_inventory(shop_id, data)
-    return jsonify({"success": True, "inventory": updated_items})
+
+    updated_item = DB.update_inventory(shop_id, data)
+
+    return jsonify({
+        "success": True,
+        "inventoryItem": updated_item
+    })
 
 @app.route("/api/inventory/<int:shop_id>", methods=["DELETE"])
 def delete_inventory(shop_id):
