@@ -16,7 +16,8 @@ function InventoryPage() {
   const [form, setForm] = useState(initialForm)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [selectedShop, setSelectedShop] = useState(null)
-
+  const [editingId, setEditingId] = useState(null)
+  const [successMessage, setSuccessMessage] = useState('')
   useEffect(() => {
     async function loadInventory() {
       const result = await getInventory()
@@ -30,13 +31,31 @@ function InventoryPage() {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
+  
   const handleSubmit = async (event) => {
     event.preventDefault()
+    setSuccessMessage(
+    editingId
+    ? 'Inventory updated successfully.'
+    : 'Inventory added successfully.'
+    )
+
+    setTimeout(() => {
+    setSuccessMessage('')
+    }, 3000)
+
+    if (editingId) {
+    await updateInventory(editingId, form)
+    setEditingId(null)
+  } else {
     await addInventory(form)
-    const result = await getInventory()
+  }
+
+  const result = await getInventory()
+
     setInventory(result.inventory || [])
     setForm(initialForm)
-  }
+}
   const handleDelete = async (shopId) => {
   const confirmDelete = setSelectedShop(shopId)
    setShowDeleteModal(true)
@@ -58,6 +77,18 @@ const result = await getInventory()
 
   setShowDeleteModal(false)
   setSelectedShop(null)
+}
+const handleEdit = (item) => {
+  setEditingId(item.ShopID)
+
+  setForm({
+    shopName: item.ShopName,
+    district: item.District,
+    currentStock: item.CurrentStock,
+    monthlyDemand: item.MonthlyDemand,
+    population: item.Population,
+    lastMonthConsumption: item.LastMonthConsumption,
+  })
 }
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -94,12 +125,15 @@ const filteredInventory = inventory.filter((item) =>
     <div className="space-y-8">
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-950">
         <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Inventory Management</h2>
+        
         <p className="mt-2 text-slate-600 dark:text-slate-400">Add and review shop-level inventory data for analytics.</p>
       </div>
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr,1fr]">
         <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 dark:border-slate-700 dark:bg-slate-950">
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Add Inventory Record</h3>
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+            {editingId ? 'Edit Inventory Record' : 'Add Inventory Record'}
+                </h3>
           {[{
             label: 'Shop Name',
             field: 'shopName',
@@ -133,8 +167,27 @@ const filteredInventory = inventory.filter((item) =>
               />
             </div>
           ))}
-          <button className="mt-3 rounded-2xl bg-aramBlue-500 px-5 py-3 text-white hover:bg-aramBlue-700">Save Record</button>
-        </form>
+            <div className="mt-4 flex gap-3">
+            <button
+            type="submit"
+            className="rounded-2xl bg-aramBlue-500 px-5 py-3 text-white hover:bg-aramBlue-700"
+          >
+            {editingId ? 'Update Record' : 'Save Record'}
+            </button>
+
+            {editingId && (
+            <button
+            type="button"
+            onClick={() => {
+            setEditingId(null)
+            setForm(initialForm)
+            }}
+            className="rounded-2xl border border-slate-300 px-5 py-3 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-white dark:hover:bg-slate-800"
+          >
+            Cancel
+            </button>
+           )}
+            </div>        </form>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-950">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Inventory Table</h3>
@@ -180,13 +233,14 @@ const filteredInventory = inventory.filter((item) =>
         <td className="px-3 py-3">
   <div className="flex gap-2">
     <button
-      className="rounded-lg bg-blue-500 p-2 text-white hover:bg-blue-600"
+      type="button"
+      onClick={() => handleEdit(item)}
+      className="rounded-lg bg-blue-500 p-2 text-white transition hover:bg-blue-600"
       title="Edit"
     >
       <Pencil className="h-4 w-4" />
-    </button>
-
-    <button
+      </button>
+        <button
     type="button"
     onClick={() => handleDelete(item.ShopID)}
     className="rounded-lg bg-red-500 p-2 text-white hover:bg-red-600"
@@ -234,6 +288,27 @@ const filteredInventory = inventory.filter((item) =>
         </button>
 
       </div>
+    </div>
+  </div>
+)}
+{successMessage && (
+  <div className="fixed top-6 right-6 z-50">
+    <div className="flex items-start gap-4 rounded-2xl border border-green-500/30 bg-slate-900 px-5 py-4 shadow-2xl shadow-black/40">
+
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20">
+        ✅
+      </div>
+
+      <div>
+        <h4 className="font-semibold text-white">
+          Success
+        </h4>
+
+        <p className="mt-1 text-sm text-slate-300">
+          {successMessage}
+        </p>
+      </div>
+
     </div>
   </div>
 )}
