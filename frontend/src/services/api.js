@@ -29,7 +29,18 @@ export async function addInventory(item) {
     body: JSON.stringify(item),
   })
 }
+export async function updateInventory(id, data) {
+  return request(`/inventory/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
 
+export async function deleteInventory(id) {
+  return request(`/inventory/${id}`, {
+    method: 'DELETE',
+  })
+}
 export async function getDashboardSummary() {
   return request('/dashboard/summary')
 }

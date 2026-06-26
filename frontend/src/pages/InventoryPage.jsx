@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getInventory, addInventory } from '../services/api'
+import { getInventory, addInventory, updateInventory, deleteInventory, } from '../services/api'
+import { Pencil, Trash2 } from "lucide-react"
 
 const initialForm = {
   shopName: '',
@@ -13,10 +14,13 @@ const initialForm = {
 function InventoryPage() {
   const [inventory, setInventory] = useState([])
   const [form, setForm] = useState(initialForm)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [selectedShop, setSelectedShop] = useState(null)
 
   useEffect(() => {
     async function loadInventory() {
       const result = await getInventory()
+      console.log(result.inventory)
       setInventory(result.inventory || [])
     }
     loadInventory()
@@ -33,6 +37,58 @@ function InventoryPage() {
     setInventory(result.inventory || [])
     setForm(initialForm)
   }
+  const handleDelete = async (shopId) => {
+  const confirmDelete = setSelectedShop(shopId)
+   setShowDeleteModal(true)
+
+   if (!confirmDelete) return
+
+   await deleteInventory(shopId)
+
+  
+
+  const result = await getInventory()
+   setInventory(result.inventory || [])
+}
+const confirmDelete = async () => {
+  await deleteInventory(selectedShop)
+
+const result = await getInventory()
+  setInventory(result.inventory || [])
+
+  setShowDeleteModal(false)
+  setSelectedShop(null)
+}
+  const [searchTerm, setSearchTerm] = useState('')
+
+const filteredInventory = inventory.filter((item) =>
+  (item.ShopName || '')
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase()) ||
+  (item.District || '')
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase())
+    )
+   const getStatus = (stock, demand) => {
+  if (stock >= demand) {
+    return {
+      label: "Safe",
+      color: "bg-green-500/20 text-green-400",
+    }
+  }
+
+  if (stock >= demand * 0.7) {
+    return {
+      label: "Low",
+      color: "bg-yellow-500/20 text-yellow-400",
+    }
+  }
+
+  return {
+    label: "Critical",
+    color: "bg-red-500/20 text-red-400",
+  }
+} 
 
   return (
     <div className="space-y-8">
@@ -82,32 +138,105 @@ function InventoryPage() {
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-950">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Inventory Table</h3>
+          <div className="mb-4">
+          <input
+          type="text"
+          placeholder="🔍 Search by shop or district..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+          />
+          </div>
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-left text-sm text-slate-700 dark:text-slate-300">
               <thead className="border-b border-slate-200 text-slate-900 dark:border-slate-700 dark:text-slate-100">
                 <tr>
-                  {['Shop', 'District', 'Stock', 'Demand', 'Population', 'Last Month'].map((header) => (
+                  {['Shop', 'District', 'Stock', 'Demand', 'Population', 'Last Month', 'Status', 'Actions'].map((header) => (
                     <th key={header} className="px-3 py-3 font-medium">{header}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {inventory.map((item) => (
-                 <tr key={item.ShopID} className="border-b border-slate-100 dark:border-slate-800">
-                    <td className="px-3 py-3">{item.ShopName}</td>
-                    <td className="px-3 py-3">{item.District}</td>
-                    <td className="px-3 py-3">{item.CurrentStock}</td>
-                    <td className="px-3 py-3">{item.MonthlyDemand}</td>
-                    <td className="px-3 py-3">{item.Population}</td>
-                    <td className="px-3 py-3">{item.LastMonthConsumption}</td>
-                 </tr>
-                ))}
-              </tbody>
+  {filteredInventory.map((item) => {
+    const status = getStatus(item.CurrentStock, item.MonthlyDemand)
+
+    return (
+      <tr key={item.ShopID} className="border-b border-slate-100 dark:border-slate-800">
+        <td className="px-3 py-3">{item.ShopName}</td>
+        <td className="px-3 py-3">{item.District}</td>
+        <td className="px-3 py-3">{item.CurrentStock} KG</td>
+        <td className="px-3 py-3">{item.MonthlyDemand} KG</td>
+        <td className="px-3 py-3">{item.Population}</td>
+        <td className="px-3 py-3">{item.LastMonthConsumption}</td>
+        
+
+        <td className="px-3 py-3">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${status.color}`}
+          >
+            {status.label}
+          </span>
+        </td>
+        <td className="px-3 py-3">
+  <div className="flex gap-2">
+    <button
+      className="rounded-lg bg-blue-500 p-2 text-white hover:bg-blue-600"
+      title="Edit"
+    >
+      <Pencil className="h-4 w-4" />
+    </button>
+
+    <button
+    type="button"
+    onClick={() => handleDelete(item.ShopID)}
+    className="rounded-lg bg-red-500 p-2 text-white hover:bg-red-600"
+    title="Delete"  
+  >
+    <Trash2 className="h-4 w-4" />
+    </button>
+  </div>
+</td>
+      </tr>
+    )
+  })}
+</tbody>
             </table>
             {inventory.length === 0 && <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">No inventory records yet.</p>}
           </div>
         </div>
       </section>
+      {showDeleteModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl dark:bg-slate-900">
+
+      <h3 className="text-xl font-semibold">
+        Delete Inventory
+      </h3>
+
+      <p className="mt-3 text-slate-600 dark:text-slate-400">
+        Are you sure you want to delete this inventory record?
+      </p>
+
+      <div className="mt-6 flex justify-end gap-3">
+
+        <button
+          onClick={() => setShowDeleteModal(false)}
+          className="rounded-xl border px-5 py-2"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={confirmDelete}
+          className="rounded-xl bg-red-600 px-5 py-2 text-white"
+        >
+          Delete
+        </button>
+
+      </div>
+    </div>
+  </div>
+)}
     </div>
   )
 }
